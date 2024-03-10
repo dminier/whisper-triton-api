@@ -1,0 +1,29 @@
+
+version: '3'
+services:
+  whisper:
+    privileged: true
+    image: soar97/triton-whisper:24.01.complete
+    ports:
+      - 8000:8000
+      - 8001:8001
+      - 8002:8002
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    shm_size: 2g
+    ulimits:
+        memlock: -1
+        stack: 67108864
+    volumes:
+      - ./models:/models
+    command: "tritonserver --model-repository /models  --pinned-memory-pool-byte-size=2048000000 --cuda-memory-pool-byte-size=0:4096000000"
+
+  hello-world:
+    image: crccheck/hello-world
+    ports:
+      - 8100:8000

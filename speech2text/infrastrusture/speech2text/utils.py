@@ -20,7 +20,7 @@ import logging
 import os
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, TextIO, Tuple, Union
+from typing import Dict, Iterable, List, TextIO, Tuple, Union
 
 import kaldialign
 
@@ -28,7 +28,7 @@ Pathlike = Union[str, Path]
 
 
 def store_transcripts(
-    filename: Pathlike, texts: Iterable[Tuple[str, str, str]]
+        filename: Pathlike, texts: Iterable[Tuple[str, str, str]]
 ) -> None:
     """Save predicted results and reference transcripts to a file.
 
@@ -48,10 +48,10 @@ def store_transcripts(
 
 
 def write_error_stats(
-    f: TextIO,
-    test_set_name: str,
-    results: List[Tuple[str, str]],
-    enable_log: bool = True,
+        f: TextIO,
+        test_set_name: str,
+        results: List[Tuple[str, str]],
+        enable_log: bool = True,
 ) -> float:
     """Write statistics based on predicted results and reference transcripts.
 
@@ -197,7 +197,7 @@ def write_error_stats(
     print("", file=f)
     print("PER-WORD STATS: word  corr tot_errs count_in_ref count_in_hyp", file=f)
     for _, word, counts in sorted(
-        [(sum(v[1:]), k, v) for k, v in words.items()], reverse=True
+            [(sum(v[1:]), k, v) for k, v in words.items()], reverse=True
     ):
         (corr, ref_sub, hyp_sub, ins, dels) = counts
         tot_errs = ref_sub + hyp_sub + ins + dels
@@ -220,10 +220,11 @@ def write_triton_stats(stats, summary_file):
             total_infer_time_s = int(model_inference_stats["compute_infer"]["ns"]) / 1e9
             total_input_time_s = int(model_inference_stats["compute_input"]["ns"]) / 1e9
             total_output_time_s = (
-                int(model_inference_stats["compute_output"]["ns"]) / 1e9
+                    int(model_inference_stats["compute_output"]["ns"]) / 1e9
             )
             summary_f.write(
-                f"queue {total_queue_time_s:<5.2f} s, infer {total_infer_time_s:<5.2f} s, input {total_input_time_s:<5.2f} s, output {total_output_time_s:<5.2f} s \n"  # noqa
+                f"queue {total_queue_time_s:<5.2f} s, infer {total_infer_time_s:<5.2f} s, input {total_input_time_s:<5.2f} s, output {total_output_time_s:<5.2f} s \n"
+                # noqa
             )
             model_batch_stats = model_state["batch_stats"]
             for batch in model_batch_stats:
@@ -233,27 +234,30 @@ def write_triton_stats(stats, summary_file):
                 compute_infer = batch["compute_infer"]
                 batch_count = int(compute_infer["count"])
                 assert (
-                    compute_infer["count"]
-                    == compute_output["count"]
-                    == compute_input["count"]
+                        compute_infer["count"]
+                        == compute_output["count"]
+                        == compute_input["count"]
                 )
                 compute_infer_time_ms = int(compute_infer["ns"]) / 1e6
                 compute_input_time_ms = int(compute_input["ns"]) / 1e6
                 compute_output_time_ms = int(compute_output["ns"]) / 1e6
                 summary_f.write(
-                    f"Batch_size {batch_size:<2}, {batch_count:<5} times, infer {compute_infer_time_ms:<9.2f} ms, avg {compute_infer_time_ms/batch_count:.2f} ms, {compute_infer_time_ms/batch_count/batch_size:.2f} ms "  # noqa
+                    f"Batch_size {batch_size:<2}, {batch_count:<5} times, infer {compute_infer_time_ms:<9.2f} ms, avg {compute_infer_time_ms / batch_count:.2f} ms, {compute_infer_time_ms / batch_count / batch_size:.2f} ms "
+                    # noqa
                 )
                 summary_f.write(
-                    f"input {compute_input_time_ms:<9.2f} ms, avg {compute_input_time_ms/batch_count:.2f} ms, "  # noqa
+                    f"input {compute_input_time_ms:<9.2f} ms, avg {compute_input_time_ms / batch_count:.2f} ms, "
+                    # noqa
                 )
                 summary_f.write(
-                    f"output {compute_output_time_ms:<9.2f} ms, avg {compute_output_time_ms/batch_count:.2f} ms \n"  # noqa
+                    f"output {compute_output_time_ms:<9.2f} ms, avg {compute_output_time_ms / batch_count:.2f} ms \n"
+                    # noqa
                 )
 
 
 def download_and_extract(
-    target_path: str,
-    url: str = "https://huggingface.co/csukuangfj/aishell-test-dev-manifests/resolve/main/data_aishell.tar.gz",
+        target_path: str,
+        url: str = "https://huggingface.co/csukuangfj/aishell-test-dev-manifests/resolve/main/data_aishell.tar.gz",
 ):
     filename = url.split("/")[-1]
 

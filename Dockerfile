@@ -37,6 +37,7 @@ COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 WORKDIR /app
 COPY speech2text ./speech2text
 COPY main.py ./main.py
+COPY html ./html
 RUN ls
 
 ENTRYPOINT ["python", "main.py" ]

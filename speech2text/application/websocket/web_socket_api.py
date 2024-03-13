@@ -56,4 +56,7 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.exception("Error")
     finally:
         await MANAGER.disconnect(fake_user_id)
-        await websocket.close()
+        try:
+            await websocket.close()
+        except:
+            pass

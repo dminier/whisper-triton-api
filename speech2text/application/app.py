@@ -18,6 +18,7 @@ async def root():
 
 @app.on_event("startup")
 async def startup_event():
+    logger.info("Application started.")
     pass
 
 

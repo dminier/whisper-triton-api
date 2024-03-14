@@ -23,11 +23,12 @@ RUN pip install poetry==1.8.2
 # Install the app
 # COPY pyproject.toml poetry.lock ./
 COPY pyproject.toml  ./
-RUN if [ $DEV ]; then \
-      poetry install --with dev --no-root && rm -rf $POETRY_CACHE_DIR; \
-    else \
-      poetry install --without dev --no-root && rm -rf $POETRY_CACHE_DIR; \
-    fi
+
+# webrtcvad :
+RUN apt-get install -y gcc
+RUN apt-get install -y portaudio19-dev python3-pyaudio
+
+RUN poetry install --without dev --no-root && rm -rf $POETRY_CACHE_DIR;
 
 
 FROM base as runtime
@@ -37,7 +38,7 @@ COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 WORKDIR /app
 COPY speech2text ./speech2text
 COPY main.py ./main.py
-COPY html ./html
+
 RUN ls
 
 ENTRYPOINT ["python", "main.py" ]

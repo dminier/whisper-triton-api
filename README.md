@@ -117,9 +117,8 @@ Open rtf.png :
 # References
 
 * Whisper + Triton : https://github.com/k2-fsa/sherpa/tree/master/triton/whisper
-* speech2text client : https://github.com/yuekaizhang/Triton-ASR-Client/blob/main/client.py
+* Speech2text client : https://github.com/yuekaizhang/Triton-ASR-Client/blob/main/client.py
 * Datasets : https://www.kaggle.com/datasets/bryanpark/french-single-speaker-speech-dataset
-* Poetry + Docker : https://www.martinrichards.me/post/python_poetry_docker/
 * Wav Websocket : https://github.com/Honghe/demo_fastapi_websocket/blob/master/src/main.py
 
 # Todo

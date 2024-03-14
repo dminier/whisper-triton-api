@@ -1,6 +1,7 @@
 import datetime
+from typing import Optional
 
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, Form
 from loguru import logger
 
 from speech2text.application import TRITON_CLIENT
@@ -16,8 +17,8 @@ async def speech2text_given_language(language_code: str, file: UploadFile = File
     return await _call_whisper_model(file, prompt)
 
 
-@rest_router.post("/rest/speech2text/")
-async def speech2text_given_prompt(file, prompt: str):
+@rest_router.post("/rest/speech2text")
+async def speech2text_given_language( prompt: Optional[str] = Form(None), file: UploadFile = File(...)):
     return await _call_whisper_model(file, prompt)
 
 

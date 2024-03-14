@@ -43,7 +43,17 @@ Remove your previous build container :
 docker rm "whisper-build"
 ```
 
+
+# API 
+
+* Rest API  : http://localhost:7000/docs#
+* Websocket endpoint :  `/ws/speech2text`
+
 # Usage
+
+## With Streamlit
+
+Use my cookbook : https://github.com/dminier/experiments-cookbook
 
 ## Simple test
 
@@ -52,10 +62,6 @@ To run both api and triton server :
 ```shell
 docker compose up -d
 ```
-
-Open Swagger http://localhost:7000/docs# and post this english 16k WAV file
-
-or use curl : 
 
 ```shell
 curl -X 'POST' \   

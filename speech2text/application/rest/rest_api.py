@@ -31,4 +31,5 @@ async def _call_whisper_model(file, prompt):
     delta = t2 - t1
     logger.debug(
         f"{delta.total_seconds() * 1000} ms to transcribe {file.filename} of size {file.size / 1000} kB and content-type {file.content_type}")
+    logger.debug(text)
     return text

@@ -13,7 +13,7 @@ app.include_router(router=websocket_router)
 
 @app.get("/")
 async def root():
-    return "Welcome !"
+    return  {'message': 'Hello Speech2Text!'}
 
 
 @app.on_event("startup")

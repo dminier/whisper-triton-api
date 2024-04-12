@@ -1,26 +1,30 @@
-import io
 import os
+from io import BytesIO
 
 import numpy as np
-import soundfile
 import tritonclient.grpc.aio as grpcclient
-from tritonclient.utils import np_to_triton_dtype
+from audiosegment import AudioSegment
 from loguru import logger
+from pydub import AudioSegment
+from tritonclient.utils import np_to_triton_dtype
 
 TRITON_HOST = os.getenv("TRITON_HOST", "127.0.0.1")
 TRITON_PORT = os.getenv("TRITON_PORT", 8001)
 WHISPER_NAME = os.getenv("WHISPER_MODEL_NAME", "whisper")
+import uuid
 
 logger.info(f"Create Triton GRPC client on {TRITON_HOST}:{TRITON_PORT}")
 
+
 class Client:
     def __init__(self) -> None:
-        url = f"{TRITON_HOST}:{TRITON_PORT}"
-        self.triton_client = grpcclient.InferenceServerClient(url=url, verbose=False)
-        self.protocol_client = grpcclient
+        self.url = f"{TRITON_HOST}:{TRITON_PORT}"
 
     async def infer(self, audio_bytes: bytes, padding_duration=10,
                     whisper_prompt: str = "<|startoftranscript|><|en|><|transcribe|><|notimestamps|>"):
+        triton_client = grpcclient.InferenceServerClient(url=self.url, verbose=False)
+        protocol_client = grpcclient
+
         waveform, sample_rate = self._load_audio(audio_bytes)
         duration = int(len(waveform) / sample_rate)
 
@@ -38,11 +42,11 @@ class Client:
         lengths = np.array([[len(waveform)]], dtype=np.int32)
 
         inputs = [
-            self.protocol_client.InferInput(
+            protocol_client.InferInput(
                 "WAV", samples.shape, np_to_triton_dtype(samples.dtype)
             )
             ,
-            self.protocol_client.InferInput(
+            protocol_client.InferInput(
                 "TEXT_PREFIX", [1, 1], "BYTES"
             ),
         ]
@@ -52,10 +56,10 @@ class Client:
         input_data_numpy = input_data_numpy.reshape((1, 1))
         inputs[1].set_data_from_numpy(input_data_numpy)
 
-        outputs = [self.protocol_client.InferRequestedOutput("TRANSCRIPTS")]
-        sequence_id = 10086
+        outputs = [protocol_client.InferRequestedOutput("TRANSCRIPTS")]
+        sequence_id = uuid.uuid4()
 
-        response = await self.triton_client.infer(
+        response = await triton_client.infer(
             WHISPER_NAME, inputs, request_id=str(sequence_id), outputs=outputs
         )
 
@@ -68,7 +72,13 @@ class Client:
 
         return decoding_results
 
+    # def _load_audio(self, audio_bytes):
+    #     waveform, samplerate = soundfile.read(file=io.BytesIO(audio_bytes), dtype='float32')
+    #     assert samplerate == 16000, f"Only support 16k sample rate, but got {samplerate}"
+    #     return waveform, samplerate
     def _load_audio(self, audio_bytes):
-        waveform, samplerate = soundfile.read(file=io.BytesIO(audio_bytes), dtype='float32')
-        assert samplerate == 16000, f"Only support 16k sample rate, but got {samplerate}"
+        audio = AudioSegment.from_file(BytesIO(audio_bytes))
+        waveform = audio.get_array_of_samples()
+        samplerate = audio.frame_rate
+
         return waveform, samplerate

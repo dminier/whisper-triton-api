@@ -2,6 +2,7 @@ import os
 
 from fastapi.testclient import TestClient
 from loguru import logger
+from pydub import AudioSegment
 
 from speech2text.application.app import app
 
@@ -27,3 +28,13 @@ def test_fr():
             response = client.post("/rest/speech2text/fr", files={"file": ("filename", f, "audio/x-wav")})
             logger.debug(f"{filename} = {response.text}")
     assert response.status_code == 200
+
+
+def test_dual_channel():
+    filename = 'tests/dataset/call/5110.mp3'
+    seg = AudioSegment.from_file(filename)
+    assert seg.channels == 2
+    with open(filename, "rb") as f:
+        response = client.post("/rest/speech2text/fr", files={"file": ("filename", f, "audio/x-wav")})
+        logger.debug(f"{filename} = {response.text}")
+    print(seg.channels)

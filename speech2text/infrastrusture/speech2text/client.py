@@ -3,12 +3,7 @@ import os
 import numpy as np
 import tritonclient.grpc.aio as grpcclient
 from loguru import logger
-from pydub import AudioSegment
-from pydub.silence import split_on_silence
-from six import BytesIO
 from tritonclient.utils import np_to_triton_dtype
-
-from speech2text.infrastrusture.async_wrap import async_wrap
 
 TRITON_HOST = os.getenv("TRITON_HOST", "127.0.0.1")
 TRITON_PORT = os.getenv("TRITON_PORT", 8001)
@@ -22,12 +17,11 @@ class Client:
     def __init__(self) -> None:
         self.url = f"{TRITON_HOST}:{TRITON_PORT}"
 
-    async def infer(self, audio_bytes: bytes, padding_duration=10,
+    async def infer(self, waveform, sample_rate, padding_duration=10,
                     whisper_prompt: str = "<|startoftranscript|><|en|><|transcribe|><|notimestamps|>"):
         triton_client = grpcclient.InferenceServerClient(url=self.url, verbose=False)
         protocol_client = grpcclient
-
-        waveform, sample_rate = await load_audio(audio_bytes)
+ 
         duration = int(len(waveform) / sample_rate)
 
         # padding to nearset 10 seconds
@@ -79,19 +73,6 @@ class Client:
     #     assert samplerate == 16000, f"Only support 16k sample rate, but got {samplerate}"
     #     return waveform, samplerate
 
-
-def sync_load_audio(audio_bytes):
-    audio = AudioSegment.from_file(BytesIO(audio_bytes))
-
-    waveform = audio.get_array_of_samples()
-    samplerate = audio.frame_rate
-
-    return waveform, samplerate
-
-
-
-
-load_audio = async_wrap(sync_load_audio)
 #
 # def load_audio(audio_bytes):
 #     data_s16 = np.frombuffer(audio_bytes, dtype=np.int16, count=len(audio_bytes) // 2, offset=0)

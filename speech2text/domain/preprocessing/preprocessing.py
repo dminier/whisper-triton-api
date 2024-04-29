@@ -45,15 +45,26 @@ def _preprocess_simple_chunks(b, frame_rate: int, channel_number: int) -> Prepro
         mono = mono_audios[i]
         duration = mono.duration_seconds
         nb_chunks = duration // MAX_CHUNK_DURATION
-        chunks = np.array_split(mono.get_array_of_samples(), nb_chunks)
-        for j in range(len(chunks)):
+        if nb_chunks > 0 :
+            chunks = np.array_split(mono.get_array_of_samples(), nb_chunks)
+            for j in range(len(chunks)):
+                channels.append(
+                    PreprocessedChunk(
+                        start=-1,
+                        end=-1,
+                        channel_name=f"channel_{i}",
+                        samples=chunks[j],
+                        sequence=j
+                    )
+                )
+        else:
             channels.append(
                 PreprocessedChunk(
                     start=-1,
                     end=-1,
                     channel_name=f"channel_{i}",
-                    samples=chunks[j],
-                    sequence=j
+                    samples=mono.get_array_of_samples(),
+                    sequence=0
                 )
             )
 

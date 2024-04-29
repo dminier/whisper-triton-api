@@ -12,7 +12,7 @@ ENV POETRY_NO_INTERACTION=1 \
     POETRY_VIRTUALENVS_IN_PROJECT=1 \
     POETRY_VIRTUALENVS_CREATE=1 \
     POETRY_CACHE_DIR=/tmp/poetry_cache
-
+ENV PATH "/usr/bin/ffprobe:$PATH"
 
 WORKDIR /app
 
@@ -27,9 +27,10 @@ COPY pyproject.toml  ./
 # webrtcvad :
 RUN apt-get install -y gcc
 RUN apt-get install -y portaudio19-dev python3-pyaudio
+RUN apt-get install -y ffmpeg libavcodec-extra
+
 
 RUN poetry install --without dev --no-root && rm -rf $POETRY_CACHE_DIR;
-
 
 FROM base as runtime
 
@@ -43,6 +44,7 @@ WORKDIR /app
 COPY speech2text ./speech2text
 COPY main.py ./main.py
 
-RUN ls
+ENV PATH "/usr/bin/ffmpeg:$PATH"
+
 
 ENTRYPOINT ["python", "main.py" ]

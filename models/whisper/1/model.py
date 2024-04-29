@@ -104,7 +104,7 @@ class TritonPythonModel:
         # convert prompt_ids to tensor, tensor shape is [Batch, Seq], left padding with self.blank
         tokens = torch.nn.utils.rnn.pad_sequence(prompt_ids, batch_first=True, padding_value=self.blank)
         tokens = tokens.to(features.device)
-        print(features.shape)
+        # print(features.shape)
         output_ids = self.model.process_batch(features, tokens)
 
         results = [output_ids[i][0] for i in range(len(output_ids))]

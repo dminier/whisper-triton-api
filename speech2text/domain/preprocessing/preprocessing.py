@@ -11,17 +11,60 @@ from speech2text.domain.preprocessing.async_wrap import async_preprocess_wrap
 
 
 @dataclass
-class Channel:
+class PreprocessedChunk:
     start: int
     end: int
     channel_name: str
     samples: array
     sequence: int = 0
 
+
+@dataclass
+class PreprocessedAudio:
+    chunks: List[PreprocessedChunk]
+    durations: float
+
+
 MAX_CHUNK_DURATION = 15
 
-def _preprocess_silence(b, frame_rate: int) -> (List[Channel], str):
-    channels: List[Channel] = []
+
+def _preprocess_simple_chunks(b, frame_rate: int, channel_number: int) -> PreprocessedAudio:
+    channels: List[PreprocessedChunk] = []
+    audio = AudioSegment.from_file(BytesIO(b))
+    audio = audio.set_frame_rate(frame_rate)
+    mono_audios = audio.split_to_mono()
+
+    if channel_number > -1:
+        if channel_number < len(mono_audios):
+            mono_audios = [mono_audios[channel_number]]
+        else:
+            raise Exception(
+                f"Wrong channel number, only {len(mono_audios)} channels. Chose a number between 0 and {len(mono_audios) - 1}")
+
+    for i in range(len(mono_audios)):
+        mono = mono_audios[i]
+        duration = mono.duration_seconds
+        nb_chunks = duration // MAX_CHUNK_DURATION
+        chunks = np.array_split(mono.get_array_of_samples(), nb_chunks)
+        for j in range(len(chunks)):
+            channels.append(
+                PreprocessedChunk(
+                    start=-1,
+                    end=-1,
+                    channel_name=f"channel_{i}",
+                    samples=chunks[j],
+                    sequence=j
+                )
+            )
+
+    return PreprocessedAudio(
+        chunks=channels,
+        durations=audio.duration_seconds
+    )
+
+
+def _preprocess_silence_with_sentence_timestamp(b, frame_rate: int) -> (List[PreprocessedChunk], int):
+    channels: List[PreprocessedChunk] = []
     audio = AudioSegment.from_file(BytesIO(b))
     audio = audio.set_frame_rate(frame_rate)
     mono_audios = audio.split_to_mono()
@@ -45,7 +88,7 @@ def _preprocess_silence(b, frame_rate: int) -> (List[Channel], str):
                 chunks = np.array_split(chunk_on_silence.get_array_of_samples(), nb_chunks)
                 for j in range(len(chunks)):
                     channels.append(
-                        Channel(
+                        PreprocessedChunk(
                             start=start_chunk,
                             end=end_chunk,
                             channel_name=f"channel_{i}",
@@ -55,7 +98,7 @@ def _preprocess_silence(b, frame_rate: int) -> (List[Channel], str):
                     )
             else:
                 channels.append(
-                    Channel(
+                    PreprocessedChunk(
                         start=start_chunk,
                         end=end_chunk,
                         channel_name=f"channel_{i}",
@@ -65,8 +108,12 @@ def _preprocess_silence(b, frame_rate: int) -> (List[Channel], str):
 
             start_chunk = end_chunk
 
-    return channels, audio.duration_seconds
+    return PreprocessedAudio(
+        chunks=channels,
+        durations=audio.duration_seconds
+    )
 
 
 # we use dedicated workers for this function
-preprocess_silence = async_preprocess_wrap(_preprocess_silence)
+preprocess_silence_with_sentence_timestamp = async_preprocess_wrap(_preprocess_silence_with_sentence_timestamp)
+preprocess_simple_chunks = async_preprocess_wrap(_preprocess_simple_chunks)

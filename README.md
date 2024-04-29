@@ -65,7 +65,7 @@ docker compose up -d
 
 ```shell
 curl -X 'POST' \   
-  'http://localhost:7000/speech2text?language_code=en'  \  
+  'http://localhost:7000/rest/speech2text/en'  \  
    -H 'accept: application/json'  \   
    -H 'Content-Type: multipart/form-data'  \  
    -F 'file=@tests/dataset/en/en-1.wav;type=audio/wav'

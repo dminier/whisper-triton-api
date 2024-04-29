@@ -52,7 +52,7 @@ class Speech2TextStressTest(HttpUser):
         ]
         t1 = datetime.datetime.now()
 
-        self.client.post("/speech2text", files=files)
+        self.client.post("/rest/speech2text/fr", files=files)
         t2 = datetime.datetime.now()
         delta = t2 - t1
 

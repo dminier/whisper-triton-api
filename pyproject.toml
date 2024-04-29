@@ -19,6 +19,7 @@ aiofiles = "^23.2.1"
 librosa = "^0.10.1"
 audiosegment = "^0.23.0"
 pyaudio = "^0.2.14"
+six = "^1.16.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"

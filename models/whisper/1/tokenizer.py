@@ -170,7 +170,7 @@ if __name__ == "__main__":
     encoding = enc.encode(mytest_str, allowed_special=enc.special_tokens_set)
     mystr = enc.decode([50361, 45, 43021, 50258, 50259, 50359])
     mystr2 = enc.decode([50361, 46284, 50258, 50259, 50359])
-    #print(encoding, mystr, mystr2)
+    print(encoding, mystr, mystr2)
     print(
         enc.encode("<|startoftranscript|>",
                    allowed_special=enc.special_tokens_set)[0])

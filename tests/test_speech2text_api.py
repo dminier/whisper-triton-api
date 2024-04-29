@@ -1,29 +1,56 @@
-import os
+import time
 
 from fastapi.testclient import TestClient
 from loguru import logger
+from pydub import AudioSegment
 
 from speech2text.application.app import app
 
 client = TestClient(app)
 
 
-def test_read_main():
-    response = client.get("/")
-    assert response.status_code == 200
-    assert response.json() == {'message': 'Hello Speech2Text!'}
+def test_simple_dual_channel():
+    rtf = call(endpoint="/rest/transcribe-simple",
+               data={"language_code": 'fr'})
 
 
-def test_speech2text():
-    with open("tests/dataset/en/en-1.wav", "rb") as f:
-        response = client.post("/rest/speech2text", files={"file": ("filename", f, "audio/x-wav")})
-        logger.debug(response.text)
-    assert response.status_code == 200
 
 
-def test_fr():
-    for filename in sorted(os.listdir('tests/dataset/fr'), key=lambda x: int(x.replace('.wav', ''))):
-        with open(f"tests/dataset/fr/{filename}", "rb") as f:
-            response = client.post("/rest/speech2text/fr", files={"file": ("filename", f, "audio/x-wav")})
-            logger.debug(f"{filename} = {response.text}")
-    assert response.status_code == 200
+
+
+    print(f"RTF = {rtf}")
+
+
+def test_simple_mono_channel():
+    rtf = call(endpoint="/rest/transcribe-simple",
+               data={"language_code": 'fr',
+                     "channel_number": '1'
+                     })
+
+    print(f"RTF = {rtf}")
+
+
+def test_transcribe_with_sentence_timestamp_method_1():
+    rtf = call(endpoint="/rest/transcribe-with-sentence-timestamp",
+               data={"language_code": 'fr'
+                     })
+
+    print(f"RTF = {rtf}")
+
+
+def call(endpoint, data):
+    filename = 'tests/dataset/call/5110-small.mp3'
+    seg = AudioSegment.from_file(filename)
+    assert seg.channels == 2
+    start = time.time()
+    with open(filename, "rb") as f:
+        response = client.post(endpoint,
+                               files={"file": ("filename", f, "audio/x-wav")},
+                               data=data
+                               )
+        logger.debug(f"{filename} = {response.text}")
+    end = time.time()
+    duration = end - start
+    audio_duration = response.json()["audio_duration"]
+    rtf = duration / audio_duration
+    return rtf

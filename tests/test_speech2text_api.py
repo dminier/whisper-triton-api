@@ -13,6 +13,11 @@ def test_simple_dual_channel():
     rtf = call(endpoint="/rest/transcribe-simple",
                data={"language_code": 'fr'})
 
+
+
+
+
+
     print(f"RTF = {rtf}")
 
 
@@ -34,7 +39,7 @@ def test_transcribe_with_sentence_timestamp_method_1():
 
 
 def call(endpoint, data):
-    filename = 'tests/dataset/call/5110.mp3'
+    filename = 'tests/dataset/call/5110-small.mp3'
     seg = AudioSegment.from_file(filename)
     assert seg.channels == 2
     start = time.time()

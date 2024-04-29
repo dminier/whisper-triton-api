@@ -73,40 +73,47 @@ def _preprocess_silence_with_sentence_timestamp(b, frame_rate: int) -> (List[Pre
         mono = mono_audios[i]
         total_duration = mono.duration_seconds
         # split on silence:
+        MIN_SILENCE_MS = 500
+        KEEP_SILENCE_MS = 100
+        silence_thresh = mono.dBFS * 2.5
         chunks_on_silence: List[AudioSegment] = split_on_silence(
             mono,
-            min_silence_len=500,
-            silence_thresh=mono.dBFS - 16
-        )
+            min_silence_len=MIN_SILENCE_MS,
+            silence_thresh=silence_thresh,
+            keep_silence=KEEP_SILENCE_MS)
+
         start_chunk = 0
         end_chunk = 0
         for chunk_on_silence in chunks_on_silence:
             duration = chunk_on_silence.duration_seconds
             end_chunk = start_chunk + duration
-            if duration > MAX_CHUNK_DURATION:
-                nb_chunks = duration // MAX_CHUNK_DURATION
-                chunks = np.array_split(chunk_on_silence.get_array_of_samples(), nb_chunks)
-                for j in range(len(chunks)):
+
+            # durée minimum du chunk
+            if duration > 0.5:
+                if duration > MAX_CHUNK_DURATION:
+                    nb_chunks = duration // MAX_CHUNK_DURATION
+                    chunks = np.array_split(chunk_on_silence.get_array_of_samples(), nb_chunks)
+                    for j in range(len(chunks)):
+                        channels.append(
+                            PreprocessedChunk(
+                                start=start_chunk,
+                                end=end_chunk,
+                                channel_name=f"channel_{i}",
+                                samples=chunks[j],
+                                sequence=j
+                            )
+                        )
+                else:
                     channels.append(
                         PreprocessedChunk(
                             start=start_chunk,
                             end=end_chunk,
                             channel_name=f"channel_{i}",
-                            samples=chunks[j],
-                            sequence=j
+                            samples=chunk_on_silence.get_array_of_samples()
                         )
                     )
-            else:
-                channels.append(
-                    PreprocessedChunk(
-                        start=start_chunk,
-                        end=end_chunk,
-                        channel_name=f"channel_{i}",
-                        samples=chunk_on_silence.get_array_of_samples()
-                    )
-                )
 
-            start_chunk = end_chunk
+                start_chunk = end_chunk
 
     return PreprocessedAudio(
         chunks=channels,
